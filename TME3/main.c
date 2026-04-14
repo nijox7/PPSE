@@ -2,8 +2,8 @@
 #include "transmitter.h"
 #include "receiver.h"
 
-#define SIZE 3
-#define NREPS 3
+#define SIZE 10
+#define NREPS 2
 #define SIGMA 0.25
 
 int main(){
@@ -22,7 +22,7 @@ int main(){
 
   channel_AWGN_add_noise(X_N, Y_N, SIZE*NREPS, SIGMA);
   modem_BPSK_demodulate(Y_N, L_N, SIZE*NREPS, SIGMA);
-  codec_repetition_soft_decode(L_N, V_K, SIZE, NREPS);
+  codec_repetition_hard_decode(L_N, V_K, SIZE, NREPS);
   monitor_check_errors(U_K, V_K, SIZE, &n_bit_errors, &n_frame_errors);
 
   printf("Transmitter: ");
@@ -36,11 +36,5 @@ int main(){
   }
   printf("\n");
 
-  // free(U_K);
-  // free(C_N);
-  // free(X_N);
-  // free(Y_N);
-  // free(L_N);
-  // free(V_K);
   return 0;
 }
