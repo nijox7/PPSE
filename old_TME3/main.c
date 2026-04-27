@@ -4,7 +4,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
+
+#define K 10
+#define NREPS 2
+#define SIGMA 0.25
 
 int main(int argc, char** argv){
   char opt;
@@ -42,14 +45,13 @@ int main(int argc, char** argv){
     }
   }
 
-  srand(time(NULL));
   for (float snr = m; snr < M; snr += s){
     uint64_t n_bit_errors = 0;
     uint64_t n_frame_errors = 0;
     uint64_t n_simu = 0;
 
-    float snr_symb = snr + 10.0*log10f( ((float) K) / ((float) N) );
-    float sigma = sqrt(1.0 / (2.0 * powf(10, snr_symb/10.0)));
+    float snr_symb = snr + 10*log10f(K/N);
+    float sigma = sqrt(1 / (2 * powf(10, snr_symb/10)));
 
     do {
       uint8_t U_K[K];
@@ -60,19 +62,30 @@ int main(int argc, char** argv){
       uint8_t V_K[K];
 
       source_generate(U_K, K);
-      codec_repetition_encode(U_K, C_N, K, N/K);
+      codec_repetition_encode(U_K, C_N, K, );
       modem_BPSK_modulate(C_N, X_N, N);
 
-      channel_AWGN_add_noise(X_N, Y_N, N, sigma);
-      modem_BPSK_demodulate(Y_N, L_N, N, sigma);
-      codec_repetition_hard_decode(L_N, V_K, K, N/K);
+      channel_AWGN_add_noise(X_N, Y_N, N, SIGMA);
+      modem_BPSK_demodulate(Y_N, L_N, N, SIGMA);
+      codec_repetition_hard_decode(L_N, V_K, K, NREPS);
       monitor_check_errors(U_K, V_K, K, &n_bit_errors, &n_frame_errors);
 
       n_simu++;
     } while(n_frame_errors < e);
 
-    printf("n_bit_error / (n_simu * K) = %f\n", ((float) n_bit_errors) / (float) (n_simu * K));
-    printf("n_frame_errors / n_simu = %f\n", ((float) n_frame_errors) / (float) n_simu);
+    printf("n_bit_error / (n_simu * K) = %f\n", n_bit_error / (n_simu * K));
+    printf("n_frame_errors / n_simu = %f\n", n_frame_errors / n_simu);
+
+
+    // printf("Transmitter: ");
+    // for (int i = 0; i < K; i++){
+    //   printf("%d ", U_K[i]);
+    // }
+    // printf("\n");
+    // printf("Receiver:    ");
+    // for (int i = 0; i < K; i++){
+    //   printf("%d ", V_K[i]);
+    // }
     printf("\n");
   }
 

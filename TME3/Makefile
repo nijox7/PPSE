@@ -1,22 +1,24 @@
-OBJ=main.o transmitter.o receiver.o gaussian.o
+SRC=src/
+OBJ=obj/
+FILES=$(OBJ)main.o $(OBJ)transmitter.o $(OBJ)receiver.o $(OBJ)gaussian.o
 
-numcom:	$(OBJ)
-	gcc -o numcom $(OBJ) -lm
+simulator:	$(FILES)
+	gcc -o simulator $(FILES) -lm
 
-main.o: main.c transmitter.h receiver.h
-	gcc -c main.c
+$(OBJ)main.o: $(SRC)main.c $(SRC)transmitter.h $(SRC)receiver.h
+	gcc -c $(SRC)main.c -o $(OBJ)main.o
 
-transmitter.o: transmitter.c transmitter.h
-	gcc -c transmitter.c
+$(OBJ)transmitter.o: $(SRC)transmitter.c $(SRC)transmitter.h
+	gcc -c $(SRC)transmitter.c -o $(OBJ)transmitter.o
 
-receiver.o: receiver.c receiver.h gaussian.h
-	gcc -c receiver.c
+$(OBJ)receiver.o: $(SRC)receiver.c $(SRC)receiver.h $(SRC)gaussian.h
+	gcc -c $(SRC)receiver.c -o $(OBJ)receiver.o
 
-gaussian.o: gaussian.c gaussian.h
-	gcc -c gaussian.c -lm
+$(OBJ)gaussian.o: $(SRC)gaussian.c $(SRC)gaussian.h
+	gcc -c $(SRC)gaussian.c -lm -o $(OBJ)gaussian.o
 
 clean:
-	rm *.o
+	rm $(OBJ)*.o
 
 clear:
-	rm *.o numcom
+	rm $(OBJ)*.o simulator
