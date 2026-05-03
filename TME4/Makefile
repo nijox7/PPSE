@@ -1,6 +1,7 @@
 SRC=src/
 OBJ=obj/
 FILES=$(OBJ)main.o $(OBJ)transmitter.o $(OBJ)receiver.o $(OBJ)gaussian.o
+STATS_FILES=stats_$(OBJ)main.o $(OBJ)transmitter.o $(OBJ)receiver.o $(OBJ)gaussian.o
 
 simulator:	$(FILES)
 	gcc -o simulator $(FILES) -lm
@@ -22,3 +23,9 @@ clean:
 
 clear:
 	rm $(OBJ)*.o simulator
+
+stats: $(STATS_FILES)
+	gcc -o simulator $(FILES) -lm
+
+stats_$(OBJ)main.o: $(SRC)main.c $(SRC)transmitter.h $(SRC)receiver.h
+	gcc -c $(SRC)main.c -o $(OBJ)main.o -DENABLE_STATS

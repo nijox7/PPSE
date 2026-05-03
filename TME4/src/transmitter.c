@@ -3,10 +3,9 @@
 
 // write into the buffer U_K
 void source_generate(uint8_t *U_K, size_t K){
-  // TODO Utiliser méthode de Box-Muller
-    for (int i = 0; i < K; i++){
-      U_K[i] = rand() % 2;
-    }
+  for (int i = 0; i < K; i++){
+    U_K[i] = rand() % 2;
+  }
 }
 
 // write into the buffer U_K
@@ -23,5 +22,19 @@ void modem_BPSK_modulate(const uint8_t *C_N, int32_t *X_N, size_t N){
   for (int i = 0; i < N; i++){
     if (C_N[i] == 0)  X_N[i] = 1;  // 0 -> 1
     else              X_N[i] = -1; // 1 -> -1
+  }
+}
+
+// write only zeros in U_K
+void source_generate_all_zeros(uint8_t *U_K, size_t K){
+  for (int i = 0; i < K; i++){
+    U_K[i] = 0;
+  }
+}
+
+// write only ones in X_N
+void modem_BPSK_modulate_all_ones(const uint8_t *C_N, int32_t *X_N, size_t N){
+  for (int i = 0; i < N; i++){
+    X_N[i] = 1;
   }
 }

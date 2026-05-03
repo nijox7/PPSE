@@ -10,3 +10,9 @@ void codec_repetition_encode(const uint8_t *U_K, uint8_t *C_N, size_t K, size_t 
 
 // read from C_N, write into X_N
 void modem_BPSK_modulate(const uint8_t *C_N, int32_t *X_N, size_t N);
+
+// write only zeros in U_K
+void source_generate_all_zeros(uint8_t *U_K, size_t K);
+
+// write only ones in X_N
+void modem_BPSK_modulate_all_ones(const uint8_t *C_N, int32_t *X_N, size_t N);

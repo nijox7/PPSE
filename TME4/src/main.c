@@ -2,13 +2,20 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
+#include <getopt.h>
+#include <time.h>      /* pour _SC... */
+#include <sys/times.h> /* pour times */
+#include <unistd.h>    /* pour sysconf */
 
 #include "transmitter.h"
 #include "receiver.h"
 
+// transform numbers from floating-point representation to fixed-point representation
+// `s` is the number of bits used in the quantizer block
+// `f` is the number of bits of the fractional part (`s` >= `f`)
+void quantizer_transform8(const float *L_N, int8_t *L8_N, size_t N, size_t s, size_t f);
+
 int main(int argc, char** argv){
-  char opt;
   float m = 0;
   float M = 12;
   float s = 1;
@@ -18,8 +25,28 @@ int main(int argc, char** argv){
   char D[15] = "rep-hard";
   FILE* filecsv = NULL;
 
-  while((opt = getopt(argc, argv, "m:M:s:e:K:N:D:o:E")) != -1){
+  // Options handling
+  int src_all_zeros = 0;
+  int mod_all_ones = 0;
+  int opt_index = 0;
+  static struct option long_options[] = {
+    {"src-all-zeros", no_argument, 0, '0'},
+    {"mod-all-ones", no_argument, 0, '1'},
+    {0,   0,    0,    0}
+  };
+
+  while(getopt_long(argc, argv, "m:M:s:e:K:N:D:o:E", long_options, &opt_index) != -1){
     switch(opt){
+      // case 0:
+      //   if (!strcmp(long_options[opt_index].name, "src-all-zeros")){
+      //     src_all_zeros = 1;
+      //   }
+      //   else if (!strcmp(long_options[opt_index].name, "mod-all-ones")){
+      //     mod_all_ones = 1;
+      //   } 
+      //   break;
+      case '?':
+        break;
       case 'm':
         m = atof(optarg);
         break;
@@ -47,30 +74,43 @@ int main(int argc, char** argv){
           printf("Erreur dans l'ouverture du fichier %s\n", optarg);
         }
         else{
-          fprintf(filecsv, "Eb/N0,Es/N0,sigma,be,fe,fn,BER,FER,Time,  AverageTime\n");
+          fprintf(filecsv, "Eb/N0,Es/N0,sigma,be,fe,fn,BER,FER,Time,AverageTime\n");
         }
         break;
-      case 'E':
-        printf("OUI\n");
-        exit(0);
+      case '0':
+        src_all_zeros = 1;
+        break;
+      case '1':
+        mod_all_ones = 1;
         break;
       default:;
     }
   }
 
+  // Begin simulation
   srand(time(NULL));
   for (float snr = m; snr < M; snr += s){
-    time_t begin_time, end_time;
-    float total_time, avg_time;
-    float sim_thr;
+    // Calculating 
+    float snr_symb = snr + 10.0*log10f( ((float) K) / ((float) N) );
+    float sigma = sqrt(1.0 / (2.0 * powf(10, snr_symb/10.0)));
 
+    // Measures declarations
+    float sim_thr;
     uint64_t n_bit_errors = 0;
     uint64_t n_frame_errors = 0;
     uint64_t n_simu = 0;
-    float snr_symb = snr + 10.0*log10f( ((float) K) / ((float) N) );
-    float sigma = sqrt(1.0 / (2.0 * powf(10, snr_symb/10.0)));
-    begin_time = time(NULL); // time the frame
 
+    // TIME HANDLER
+    float ratio=1000 / sysconf(_SC_CLK_TCK);
+    /* 0: begin frame, 1: src generate, 2: encode, 3: modulate, 4: channel, 5: demodulate, 6: decode, 7: monitor */
+    struct tms time_steps[8];
+    /* 0: frame, 1: src generate, 2: encode, 3: modulate, 4: channel, 5: demodulate, 6: decode, 7: monitor */
+    float total_duration[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    float avg_duration[8];
+    float percent_duration[8];
+    float throughput[8];
+
+    // SIMULATION
     do {
       uint8_t U_K[K];
       uint8_t C_N[N];
@@ -78,40 +118,142 @@ int main(int argc, char** argv){
       float Y_N[N];
       float L_N[N];
       uint8_t V_K[K];
+
+      times(&time_steps[0]); // frame begin step
+
       // Transmitter
-      source_generate(U_K, K);
+      if (src_all_zeros) source_generate_all_zeros(U_K, K);
+      else source_generate(U_K, K);
+      times(&time_steps[1]);
+
       codec_repetition_encode(U_K, C_N, K, N/K);
-      modem_BPSK_modulate(C_N, X_N, N);
-      // Receiver
+      times(&time_steps[2]);
+
+      if (mod_all_ones) modem_BPSK_modulate_all_ones(C_N, X_N, N);
+      else modem_BPSK_modulate(C_N, X_N, N);
+      times(&time_steps[3]);
+
+      // Channel
       channel_AWGN_add_noise(X_N, Y_N, N, sigma);
+      times(&time_steps[4]);
+
+      // Receiver
       modem_BPSK_demodulate(Y_N, L_N, N, sigma);
+      times(&time_steps[5]);
+
       codec_repetition_hard_decode(L_N, V_K, K, N/K);
+      times(&time_steps[6]);
+
       monitor_check_errors(U_K, V_K, K, &n_bit_errors, &n_frame_errors);
+      times(&time_steps[7]);
+
       // End
       n_simu++;
+
+      // Total duration measure
+      total_duration[0] += ratio * (time_steps[7].tms_utime - time_steps[0].tms_utime); // duration of the frame
+
+      // Additionnal measures
+      #ifdef ENABLE_STATS
+      for (int i = 1; i < 8; i++){
+        total_duration[i] += ratio * (time_steps[i].tms_utime - time_steps[i-1].tms_utime);
+      }
+      #endif
     } while(n_frame_errors < e);
 
-    // end of time the frame
-    end_time = time(NULL);
-
-    // total_time = (unsigned long) difftime(end_time, begin_time);
-    total_time = end_time - begin_time;
-    avg_time = total_time/ (float) n_simu; // average time for 1 frame
-    sim_thr = (n_simu * K) / total_time;
-    // printf("%f/%f = %f\n", total_time, (float) n_simu, total_time / n_simu);
-    printf("total_time = %f\n n_simu = %d\n avg_time = %f\n", total_time, n_simu, avg_time);
-    // printf("total_time = %f");
-
+    // Global measures
     float ber = ((float) n_bit_errors) / (float) (n_simu * K);
-    float fer = ((float) n_frame_errors) / (float) n_simu;
-    printf("n_bit_error / (n_simu * K) = %f\n", ber);
-    printf("n_frame_errors / n_simu = %f\n", fer);
+    float fer = ((float) n_frame_errors) / (float) n_simu;  
+    avg_duration[0] = total_duration[0] / (float) n_simu;
+    throughput[0] = (((float) (n_simu * K)) / total_duration[0]) * 1e-3; // débit mégabits par secondes (nb bits transférés / durée totale de la simulation)
+
+    // Additionnal measures
+    #ifdef ENABLE_STATS
+    for (int i = 1; i < 8; i++){
+      avg_duration[i] = total_duration[i] / (float) n_simu;
+    }
+    for (int i = 0; i < 8; i++){
+      percent_duration[i] = (total_duration[i] / total_duration[0]) * 100.0;
+    }
+    for (int i = 1; i < 8; i++){
+      switch(i){
+        case 0:case 5:case 7:
+          throughput[i] = (((float) (n_simu * K)) / total_duration[i]) * 1e-3;
+          break;
+        case 1:case 2:case 3:case 4:case 6:
+          throughput[i] = (((float) (n_simu * N)) / total_duration[i]) * 1e-3;
+          break;
+      }
+    }
+    #endif
+
+    // Writing csv line
+    if(filecsv){
+      if(fprintf(filecsv, "%f,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",snr,snr_symb,sigma,n_bit_errors,n_frame_errors,n_simu,ber,fer,total_duration[0],avg_duration[0])){
+        printf("succesfull writing frame for SNR %f\n", snr);
+      }
+      // printf("snr:%f\nsnr_symb:%f\nsigma:%f\nn_bit_errors:%d\nn_frame_errors:%d\nn_simu:%d\nber:%f\nfer:%f\ntotal_time:%f\navg_time:%f\n", snr,snr_symb,sigma,n_bit_errors,n_frame_errors,n_simu,ber,fer,total_duration[0],avg_duration[0]);
+    }
+    // printf("snr:%f\nsnr_symb:%f\nsigma:%f\nn_bit_errors:%d\nn_frame_errors:%d\nn_simu:%d\nber:%f\nfer:%f\ntotal_time:%f\navg_time:%f\n", snr,snr_symb,sigma,n_bit_errors,n_frame_errors,n_simu,ber,fer,total_duration[0],avg_duration[0]);
+
+    printf("\n----- Statistics for SNR=%f -----\n", snr);
+    printf("-- Total time --\n");
+    printf("Number of bits transfered: %d bits\n", K*n_simu);
+    printf("Total duration: %f ms\n", total_duration[0]);
+    printf("Average duration: %f ms\n", avg_duration[0]);
+    printf("Throughput of the communication: %f mbps\n", throughput[0]);
     printf("\n");
 
-    if(filecsv){
-      fprintf(filecsv, "%f,%f,%f,%d,%d,%d,%f,%f,%f,%f\n",snr,snr_symb,sigma,n_bit_errors,n_frame_errors,n_simu,ber,fer,total_time,avg_time);
-      printf("snr:%f\nsnr_symb:%f\nsigma:%f\nn_bit_errors:%d\nn_frame_errors:%d\nn_simu:%d\nber:%f\nfer:%f\ntotal_time:%f\navg_time:%f\n", snr,snr_symb,sigma,n_bit_errors,n_frame_errors,n_simu,ber,fer,total_time,avg_time);
-    }
+    #ifdef ENABLE_STATS
+    printf("-- Source generate --\n");
+    printf("Total duration: %f ms\n", total_duration[1]);
+    printf("Average duration: %f ms\n", avg_duration[1]);
+    printf("Percentage of duration: %f %%\n", percent_duration[1]);
+    printf("Throughput: %f mbps\n", throughput[1]);
+    printf("\n");
+
+    printf("-- Encoder --\n");
+    printf("Total duration: %f ms\n", total_duration[2]);
+    printf("Average duration: %f ms\n", avg_duration[2]);
+    printf("Percentage of duration: %f %%\n", percent_duration[2]);
+    printf("Throughput: %f mbps\n", throughput[2]);
+    printf("\n");
+
+    printf("-- Modulator --\n");
+    printf("Total duration: %f ms\n", total_duration[3]);
+    printf("Average duration: %f ms\n", avg_duration[3]);
+    printf("Percentage of duration: %f %%\n", percent_duration[3]);
+    printf("Throughput: %f mbps\n", throughput[3]);
+    printf("\n");
+
+    printf("-- Channel --\n");
+    printf("Total duration: %f ms\n", total_duration[4]);
+    printf("Average duration: %f ms\n", avg_duration[4]);
+    printf("Percentage of duration: %f %%\n", percent_duration[4]);
+    printf("Throughput: %f mbps\n", throughput[4]);
+    printf("\n");
+
+    printf("-- Demodulator --\n");
+    printf("Total duration: %f ms\n", total_duration[5]);
+    printf("Average duration: %f ms\n", avg_duration[5]);
+    printf("Percentage of duration: %f %%\n", percent_duration[5]);
+    printf("Throughput: %f mbps\n", throughput[5]);
+    printf("\n");
+
+    printf("-- Decoder --\n");
+    printf("Total duration: %f ms\n", total_duration[6]);
+    printf("Average duration: %f ms\n", avg_duration[6]);
+    printf("Percentage of duration: %f %%\n", percent_duration[6]);
+    printf("Throughput: %f mbps\n", throughput[6]);
+    printf("\n");
+
+    printf("-- Monitor --\n");
+    printf("Total duration: %f ms\n", total_duration[7]);
+    printf("Average duration: %f ms\n", avg_duration[7]);
+    printf("Percentage of duration: %f %%\n", percent_duration[7]);
+    printf("Throughput: %f mbps\n", throughput[7]);
+    printf("\n");
+    #endif
   }
 
   if (filecsv) fclose(filecsv);
