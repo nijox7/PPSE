@@ -31,7 +31,7 @@ void codec_repetition_hard_decode(const float *L_N, uint8_t *V_K, size_t K, size
   for (int j = 0; j < K; j++){
     for (int i = 0; i < n_reps; i++){
       if (L_N[i*K + j] >= 0.0) temp_K[j]++;
-      else                          temp_K[j]--;
+      else                     temp_K[j]--;
     }
   }
 

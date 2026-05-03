@@ -1,0 +1,216 @@
+
+----- Statistics for SNR=0.000000 -----
+-- Total time --
+Number of bits transfered: 3264 bits
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: inf mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: -nan %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=1.000000 -----
+-- Total time --
+Number of bits transfered: 3232 bits
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: inf mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: -nan %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=2.000000 -----
+-- Total time --
+Number of bits transfered: 3296 bits
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: inf mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: -nan %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=3.000000 -----
+-- Total time --
+Number of bits transfered: 3552 bits
+Total duration: 10.000000 ms
+Average duration: 0.090090 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: 0.355200 mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: 0.000000 %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=4.000000 -----
+-- Total time --
+Number of bits transfered: 4032 bits
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: inf mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: -nan %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=5.000000 -----
+-- Total time --
+Number of bits transfered: 4800 bits
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: inf mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: -nan %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=6.000000 -----
+-- Total time --
+Number of bits transfered: 5504 bits
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: inf mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: -nan %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=7.000000 -----
+-- Total time --
+Number of bits transfered: 9760 bits
+Total duration: 10.000000 ms
+Average duration: 0.032787 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: 0.976000 mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: 0.000000 %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=8.000000 -----
+-- Total time --
+Number of bits transfered: 19840 bits
+Total duration: 10.000000 ms
+Average duration: 0.016129 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: 1.984000 mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: 0.000000 %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=9.000000 -----
+-- Total time --
+Number of bits transfered: 44192 bits
+Total duration: 20.000000 ms
+Average duration: 0.014482 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: 2.209600 mbps
+
+-- Decoder --
+Total duration: 10.000000 ms
+Average duration: 0.007241 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: 50.000000 %
+Throughput: 4.419200 mbps
+
+
+----- Statistics for SNR=10.000000 -----
+-- Total time --
+Number of bits transfered: 117664 bits
+Total duration: 50.000000 ms
+Average duration: 0.013598 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: 2.353280 mbps
+
+-- Decoder --
+Total duration: 0.000000 ms
+Average duration: 0.000000 ms
+Maximal duration: 0.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: 0.000000 %
+Throughput: inf mbps
+
+
+----- Statistics for SNR=11.000000 -----
+-- Total time --
+Number of bits transfered: 555808 bits
+Total duration: 190.000000 ms
+Average duration: 0.010939 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Throughput of the communication: 2.925305 mbps
+
+-- Decoder --
+Total duration: 10.000000 ms
+Average duration: 0.000576 ms
+Maximal duration: 10.000000 ms
+Minimal duration: 0.000000 ms
+Percentage of duration: 5.263158 %
+Throughput: 55.580799 mbps
+

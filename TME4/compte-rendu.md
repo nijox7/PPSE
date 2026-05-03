@@ -21,11 +21,26 @@ Pour calculer le temps en millisecondes il faut utiliser la fonction *times()*.
 ### Options longues à double tiret
 Utiliser *getopt_long()*.
 
-
 ### Task 2 et 3
+<!-- TODO  A RETESTER JE PENSE QUE C'EST PAS BON!!!
 Pour la simulation 1:
 >
     ./simulator -m 0 -M 15 -s 1 -e 100 -K 32 -N 128 -D "rep-hard" --mod-all-ones --src-all-zeros
 
 On passe d'un débit de 1.57 mbps à 1.71 mbps avec les options activées.\n
 Le temps est également réduit, on passe de 32 secondes à 13 secondes.
+-->
+
+## Task 2
+>
+        $ ./simulator > results/task2_src_normal
+        $ ./simulator --src-all-zeros > results/task2_src_all_zeros
+
+L'étape de decode semble être plus rapide pour des SNR grands.\n
+Pour SNR = 14, on passe d'un débit de 12 mbps à 45 mbps en décode avec --src-all-zeros\n
+
+Le débit de simulation est légèrement supérieur:\n
+On passe de 1.25 mbps à 1.28 mbps avec l'option.
+
+## Task 3
+Avec l'option --mod-all-ones, la simulation est presque instantanée, il n'y pas de délai, la durée de simulation est suffisament courte pour la considérer comme instantanée.
