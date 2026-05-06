@@ -66,4 +66,6 @@ On oublie pas de rajouter l'include suivant dans les fichiers faisant dans optim
     #include <arm_neon.h>
 
 
+Pour softdecode -> utiliser *vqadd_s8* qui bloque l'addition au seuils du format 8 bits.
+
 <!-- TODO CONNEXION SSH ssh 100.96.66.33 -->
