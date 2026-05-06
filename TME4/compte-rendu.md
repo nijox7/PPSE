@@ -64,3 +64,6 @@ Pour le makefile on remplace gcc par:
 On oublie pas de rajouter l'include suivant dans les fichiers faisant dans optimisations SIMD:
 >
     #include <arm_neon.h>
+
+
+<!-- TODO CONNEXION SSH ssh 100.96.66.33 -->
