@@ -1,11 +1,13 @@
+#NEON
+
 SRC=src/
 OBJ=obj/
 FILES=$(OBJ)main.o $(OBJ)transmitter.o $(OBJ)receiver.o $(OBJ)gaussian.o
 STATS_FILES=stats_$(OBJ)main.o $(OBJ)transmitter.o $(OBJ)receiver.o $(OBJ)gaussian.o
-RECEIVER_FLAGS=-O3 -march=native
+RECEIVER_FLAGS=#-O3 -march=native
 MAIN_FLAGS=-lm
 GAUSSIAN_FLAGS=-lm
-CC=gcc
+CC=arm-linux-gnueabihf-gcc -mfpu=neon -static -O3
 
 
 simulator:	$(FILES)

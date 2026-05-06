@@ -2,13 +2,13 @@
 #include "gaussian.h"
 #include "math.h"
 #include <time.h>
+#include <arm_neon.h>
 
 // add white Gaussian noise
 void channel_AWGN_add_noise(const int32_t *X_N, float *Y_N, size_t N, float sigma){
   float n;
   for (int i = 0; i < N; i++){
     n = normal_law(sigma);
-    // printf("n = %f\n", n);
     Y_N[i] = X_N[i] + n; // add noise
   }
 }
@@ -74,3 +74,89 @@ void monitor_check_errors(const uint8_t *U_K, const uint8_t *V_K, size_t K, uint
   }
   if (!frame_valid) (*n_frame_errors) += 1;
 }
+
+// hard decoder8: first hard decides each LLR and then makes a majority vote
+void codec_repetition_hard_decode8(const int8_t *L8_N, uint8_t *V_K, size_t K, size_t n_reps){
+  int8_t temp_K[K]; // temp array to save the vote results
+
+  // initialize votes to 0
+  for (int k = 0; k < K; k++){ temp_K[k] = 0; }
+
+  // count each vote
+  for (int j = 0; j < K; j++){
+    for (int i = 0; i < n_reps; i++){
+      if (L8_N[i*K + j] >= 0.0) temp_K[j]++;
+      else                     temp_K[j]--;
+    }
+  }
+
+  // decides by majority
+  for (int i = 0; i < K; i++){
+    if (temp_K[i] > 0) V_K[i] = 0;
+    else               V_K[i] = 1;
+  }
+}
+
+// soft decoder8: computes the mean of each LLR to hard decide the bits
+void codec_repetition_soft_decode8(const int8_t *L8_N, uint8_t *V_K, size_t K, size_t n_reps){
+  int8_t temp_K[K]; // temp array to save the averages
+
+  // initialize averages to 0
+  for (int k = 0; k < K; k++){ temp_K[k] = 0; }
+
+  // calculating the averages
+  for (int j = 0; j < K; j++){
+    for (int i = 0; i < n_reps; i++){
+      temp_K[j] += L8_N[i*n_reps + j];
+    }
+  }
+
+  // makes the hard decision
+  for (int i = 0; i < K; i++){
+    if (temp_K[i] >= 0) V_K[i] = 0;
+    else                V_K[i] = 1;
+  }
+}
+
+// // hard decoder: first hard decides each LLR and then makes a majority vote
+// void codec_repetition_hard_decode8_neon(const int8_t *L8_N, uint8_t *V_K, size_t K, size_t n_reps){
+//   int8_t temp_K[K]; // temp array to save the vote results
+
+//   // initialize votes to 0
+//   for (int k = 0; k < K; k++){ temp_K[k] = 0; }
+
+//   // count each vote
+//   for (int j = 0; j < K; j++){
+//     for (int i = 0; i < n_reps; i++){
+//       if (L8_N[i*K + j] >= 0.0) temp_K[j]++;
+//       else                     temp_K[j]--;
+//     }
+//   }
+
+//   // decides by majority
+//   for (int i = 0; i < K; i++){
+//     if (temp_K[i] > 0) V_K[i] = 0;
+//     else               V_K[i] = 1;
+//   }
+// }
+
+// // soft decoder: computes the mean of each LLR to hard decide the bits
+// void codec_repetition_soft_decode8_neon(const int8_t *L8_N, uint8_t *V_K, size_t K, size_t n_reps){
+//   int8_t temp_K[K]; // temp array to save the averages
+
+//   // initialize averages to 0
+//   for (int k = 0; k < K; k++){ temp_K[k] = 0; }
+
+//   // calculating the averages
+//   for (int j = 0; j < K; j++){
+//     for (int i = 0; i < n_reps; i++){
+//       temp_K[j] += L8_N[i*n_reps + j];
+//     }
+//   }
+
+//   // makes the hard decision
+//   for (int i = 0; i < K; i++){
+//     if (temp_K[i] >= 0) V_K[i] = 0;
+//     else                V_K[i] = 1;
+//   }
+// }

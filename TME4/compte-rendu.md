@@ -1,4 +1,4 @@
-# PPSE: Compte-rendu TME4
+# PPSE: Compte-rendu - Lab 4 - Optimization of the simulation chain
 
 ## Notes
 faire fonctions:
@@ -44,3 +44,23 @@ On passe de 1.25 mbps à 1.28 mbps avec l'option.
 
 ## Task 3
 Avec l'option --mod-all-ones, la simulation est presque instantanée, il n'y pas de délai, la durée de simulation est suffisament courte pour la considérer comme instantanée.
+
+## Task 4
+On utilise la méthode vu à la fin du cours 1 pour convertir un float virgule flottante à virgule fixe.\
+
+## Task 6
+En utilisant le simulateur QEMU pour simuler un processeur ARM, on compile avec la ligne suivante un programme de test:
+>
+    arm-linux-gnueabihf-gcc -mfpu=neon -static maintest.c -o maintest
+
+Pour exécuter le programme de test
+>
+    qemu-arm ./maintest
+
+Pour le makefile on remplace gcc par:
+>
+    CC=arm-linux-gnueabihf-gcc -mfpu=neon -static -O3
+
+On oublie pas de rajouter l'include suivant dans les fichiers faisant dans optimisations SIMD:
+>
+    #include <arm_neon.h>

@@ -9,6 +9,7 @@
 
 #include "transmitter.h"
 #include "receiver.h"
+#include "gaussian.h"
 
 int main(int argc, char** argv){
   float m = 0;
@@ -17,21 +18,32 @@ int main(int argc, char** argv){
   uint e = 100;
   uint K = 8;
   uint N = 32;
+  int qf = 0;
+  int qs = 8;
   char D[15] = "rep-hard";
+  void (*codec_repetition_decode) (const float*, uint8_t*, size_t, size_t) = codec_repetition_hard_decode;
+  void (*codec_repetition_decode8) (const int8_t*, uint8_t*, size_t, size_t) = codec_repetition_hard_decode8;
   FILE* filecsv = NULL;
 
   // Options handling
   char opt;
   int src_all_zeros = 0;
   int mod_all_ones = 0;
+  int quantizer_on = 0;
   int opt_index = 0;
+  int temp; // temporary
+
   static struct option long_options[] = {
-    {"src-all-zeros", no_argument, 0, '0'},
-    {"mod-all-ones", no_argument, 0, '1'},
-    {0,   0,    0,    0}
+    {"src-all-zeros", no_argument,        0,  '0'},
+    {"mod-all-ones",  no_argument,        0,  '1'},
+    {"qf",            required_argument,  0,  'F'},
+    {"qs",            required_argument,  0,  'S'},
+    {0,               0,                  0,  0}
   };
 
   while((opt=getopt_long(argc, argv, "m:M:s:e:K:N:D:o:E", long_options, &opt_index)) != -1){
+    
+  printf("DEBUT comm\n");
     switch(opt){
       // case 0:
       //   if (!strcmp(long_options[opt_index].name, "src-all-zeros")){
@@ -63,6 +75,12 @@ int main(int argc, char** argv){
         break;
       case 'D':
         strcpy(D, optarg);
+        if      (strcmp(D, "rep-hard") == 0)        codec_repetition_decode = codec_repetition_hard_decode;
+        else if (strcmp(D, "rep-soft") == 0)        codec_repetition_decode = codec_repetition_soft_decode;
+        else if (strcmp(D, "rep-hard8") == 0)       codec_repetition_decode8 = codec_repetition_hard_decode8;
+        else if (strcmp(D, "rep-soft8") == 0)       codec_repetition_decode8 = codec_repetition_soft_decode8;
+        else if (strcmp(D, "rep-hard8-neon") == 0)  codec_repetition_decode8 = codec_repetition_hard_decode8_neon;
+        else if (strcmp(D, "rep-soft8-neon") == 0)  codec_repetition_decode8 = codec_repetition_soft_decode8_neon;
         break;
       case 'o':
         filecsv = fopen(optarg, "w+");
@@ -80,6 +98,15 @@ int main(int argc, char** argv){
       case '1':
         printf("ALL ONES\n");
         mod_all_ones = 1;
+        break;
+      case 'F':
+        temp = atoi(optarg);
+        if (temp >= 0 && temp < 8) qf = temp;
+        quantizer_on = 1;
+        break;
+      case 'S':
+        temp = atoi(optarg);
+        if (temp >= 1 && temp <= 8) qs = temp;
         break;
       default:;
     }
@@ -118,6 +145,7 @@ int main(int argc, char** argv){
       int32_t X_N[N];
       float Y_N[N];
       float L_N[N];
+      int8_t L8_N[N];
       uint8_t V_K[K];
 
       times(&time_steps[0]); // frame begin step
@@ -142,9 +170,15 @@ int main(int argc, char** argv){
       modem_BPSK_demodulate(Y_N, L_N, N, sigma);
       times(&time_steps[5]);
 
-      codec_repetition_hard_decode(L_N, V_K, K, N/K);
+      if (quantizer_on) { // convert float point to fixed point
+        quantizer_transform8(L_N, L8_N, N, qs, qf);
+        (*codec_repetition_decode8)(L8_N, V_K, K, N/K);
+      }
+      else {              // not convert
+        (*codec_repetition_decode)(L_N, V_K, K, N/K);
+      }
       times(&time_steps[6]);
-
+      
       monitor_check_errors(U_K, V_K, K, &n_bit_errors, &n_frame_errors);
       times(&time_steps[7]); // frame end step
 
